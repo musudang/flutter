@@ -44,34 +44,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     if (_user == null) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text("User not found."),
-              ElevatedButton(
-                onPressed: () => authService.signOut(),
-                child: const Text("Logout"),
-              ),
-            ],
+      // Fallback to Auth User if Firestore user is null but Auth is logged in
+      final authUser = authService.currentUser;
+      if (authUser != null) {
+        _user = User(
+          id: authUser.uid,
+          name: authUser.displayName ?? 'New User',
+          avatarUrl:
+              authUser.photoURL ??
+              'https://ui-avatars.com/api/?name=New+User&background=random',
+          nationality: 'Global 🌍',
+        );
+      } else {
+        return Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("User not found."),
+                ElevatedButton(
+                  onPressed: () => authService.signOut(),
+                  child: const Text("Logout"),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('My Profile'),
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 24,
+            color: Color(0xFF1A1F36),
+            letterSpacing: -0.5,
+          ),
+        ),
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         elevation: 0,
+        centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Color(0xFF1A1F36)),
             onPressed: () async {
               await authService.signOut();
-              // AuthWrapper in main.dart handles redirect
             },
           ),
         ],
@@ -79,40 +100,152 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(height: 30),
-            // Avatar
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: NetworkImage(_user!.avatarUrl),
-              backgroundColor: Colors.grey[200],
+            const SizedBox(height: 20),
+            // Profile Header
+            Center(
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.orange[50], // Light orange bg
+                    backgroundImage:
+                        _user!.avatarUrl.isNotEmpty &&
+                            !_user!.avatarUrl.contains('ui-avatars')
+                        ? NetworkImage(_user!.avatarUrl)
+                        : null,
+                    child:
+                        (_user!.avatarUrl.isEmpty ||
+                            _user!.avatarUrl.contains('ui-avatars'))
+                        ? Text(
+                            _user!.name.isNotEmpty
+                                ? _user!.name[0].toLowerCase()
+                                : 'u',
+                            style: TextStyle(
+                              fontSize: 40,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.deepOrange[400], // Orange text
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _user!.name,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1F36),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '@${_user!.name.toLowerCase().replaceAll(' ', '')}65', // Mock handle
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF), // Light blue bg
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.public,
+                          size: 14,
+                          color: Color(0xFF3B82F6),
+                        ), // Globe icon
+                        const SizedBox(width: 4),
+                        Text(
+                          _user!.nationality
+                              .replaceAll(RegExp(r'[^\w\s]'), '')
+                              .trim(), // Remove emoji for clean look like "USA"
+                          style: const TextStyle(
+                            color: Color(0xFF3B82F6), // Blue text
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            // Name
-            Text(
-              _user!.name,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 24),
 
-            // Settings List
-            _buildSettingsItem(Icons.person_outline, 'Edit Profile'),
-            _buildSettingsItem(Icons.notifications_outlined, 'Notifications'),
-            _buildSettingsItem(Icons.security, 'Privacy & Security'),
-            _buildSettingsItem(Icons.help_outline, 'Help & Support'),
+            // Bio Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      'Tap to add a bio...',
+                      style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                    ),
+                    const Spacer(),
+                    Icon(Icons.edit, size: 16, color: Colors.grey[400]),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // My Posts Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              color: const Color(0xFFF9FAFB), // Slight bg change for section
+              child: const Text(
+                'My Posts (0)',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A1F36),
+                ),
+              ),
+            ),
+
+            // Empty State
+            Container(
+              height: 300,
+              color: const Color(0xFFF9FAFB),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.description_outlined,
+                      size: 48,
+                      color: Colors.grey[300],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No posts yet',
+                      style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildSettingsItem(IconData icon, String title) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.teal),
-      title: Text(title),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () {
-        // TODO: Navigate to respective settings
-      },
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/firestore_service.dart';
 
 class CreatePostScreen extends StatefulWidget {
@@ -31,16 +32,23 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         listen: false,
       );
       final user = await firestoreService.getCurrentUser();
+      final currentUser = FirebaseAuth.instance.currentUser;
 
-      if (user == null) {
+      if (user == null || currentUser == null) {
+        debugPrint(
+          "Error: User is null. DatabaseUser: $user, AuthUser: $currentUser",
+        );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error: You must be logged in')),
+            const SnackBar(
+              content: Text('Error: You must be logged in to post'),
+            ),
           );
         }
         return;
       }
 
+      debugPrint("Submitting post for user: ${user.name} (${user.id})");
       await firestoreService.addPost(content, user.id, user.name);
 
       if (mounted) {
@@ -51,9 +59,34 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error creating post: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error creating post: $e\nHint: Check Firebase Console Rules!',
+            ),
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Details',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Permission Error'),
+                    content: const Text(
+                      'This error usually means the Firestore Security Rules on the Firebase Console are blocking the write operation.\n\nPlease go to Firebase Console > Firestore Database > Rules and ensure "allow read, write: if request.auth != null;" is deployed.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) {

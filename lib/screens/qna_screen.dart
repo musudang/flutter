@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../services/firestore_service.dart';
 import '../models/question_model.dart';
 import 'create_qna_screen.dart';
+import 'qna_detail_screen.dart';
 
 class QnaScreen extends StatelessWidget {
   const QnaScreen({super.key});
@@ -37,12 +38,13 @@ class QnaScreen extends StatelessWidget {
             itemCount: questions.length,
             itemBuilder: (context, index) {
               final question = questions[index];
-              return _buildQuestionItem(question);
+              return _buildQuestionItem(context, question);
             },
           );
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'qna_fab',
         onPressed: () {
           Navigator.push(
             context,
@@ -55,7 +57,7 @@ class QnaScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuestionItem(Question question) {
+  Widget _buildQuestionItem(BuildContext context, Question question) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
@@ -81,7 +83,12 @@ class QnaScreen extends StatelessWidget {
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: () {
-          // TODO: Navigate to Question Detail Screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => QnaDetailScreen(question: question),
+            ),
+          );
         },
       ),
     );

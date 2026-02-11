@@ -218,29 +218,33 @@ class _CreateMeetupScreenState extends State<CreateMeetupScreen> {
                     : null,
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Text('Max Participants: '),
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle_outline),
-                    onPressed: () => setState(
-                      () => _maxParticipants = _maxParticipants > 2
-                          ? _maxParticipants - 1
-                          : 2,
-                    ),
-                  ),
-                  Text(
-                    '$_maxParticipants',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
-                    onPressed: () => setState(() => _maxParticipants++),
-                  ),
-                ],
+              TextFormField(
+                initialValue: _maxParticipants.toString(),
+                decoration: const InputDecoration(
+                  labelText: 'Max Participants (모집 인원)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.group),
+                  suffixText: 'people',
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  final int? val = int.tryParse(value);
+                  if (val != null && val >= 2) {
+                    setState(() {
+                      _maxParticipants = val;
+                    });
+                  }
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter number of participants';
+                  }
+                  final int? val = int.tryParse(value);
+                  if (val == null || val < 2) {
+                    return 'Minimum 2 participants required';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 32),
               SizedBox(

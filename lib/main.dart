@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
             secondary: Colors.orangeAccent,
           ),
           useMaterial3: true,
-          scaffoldBackgroundColor: Colors.grey[50],
+          scaffoldBackgroundColor: const Color(0xFFF8F9FA),
           appBarTheme: const AppBarTheme(
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.white,

@@ -14,6 +14,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  String? _nationality;
   bool _isLoading = false;
 
   @override
@@ -33,6 +34,7 @@ class _SignupScreenState extends State<SignupScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         name: _nameController.text.trim(),
+        nationality: _nationality!,
       );
 
       setState(() => _isLoading = false);
@@ -74,6 +76,42 @@ class _SignupScreenState extends State<SignupScreen> {
                   validator: (value) => value == null || value.isEmpty
                       ? 'Please enter your name'
                       : null,
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    labelText: 'Nationality',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.flag),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'USA 🇺🇸',
+                      child: Text('USA 🇺🇸'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Korea 🇰🇷',
+                      child: Text('Korea 🇰🇷'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'China 🇨🇳',
+                      child: Text('China 🇨🇳'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Japan 🇯🇵',
+                      child: Text('Japan 🇯🇵'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Vietnam 🇻🇳',
+                      child: Text('Vietnam 🇻🇳'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Other 🌏',
+                      child: Text('Other 🌏'),
+                    ),
+                  ],
+                  onChanged: (val) => _nationality = val,
+                  validator: (val) => val == null ? 'Select nationality' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(

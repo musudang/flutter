@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/meetup_model.dart';
 import '../services/firestore_service.dart';
+import 'meetup_chat_screen.dart';
 
 class MeetupDetailScreen extends StatelessWidget {
   final String meetupId;
@@ -16,185 +17,246 @@ class MeetupDetailScreen extends StatelessWidget {
       listen: false,
     );
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Meetup Details'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: StreamBuilder<Meetup>(
-        stream: firestoreService.getMeetup(meetupId),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData) {
-            return const Center(child: Text('Meetup not found'));
-          }
+    return StreamBuilder<Meetup>(
+      stream: firestoreService.getMeetup(meetupId),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: Center(child: Text('Error: ${snapshot.error}')),
+          );
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (!snapshot.hasData) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: Text('Meetup not found')),
+          );
+        }
 
-          final meetup = snapshot.data!;
-          final currentUserId = firestoreService.currentUserId;
-          final isJoined =
-              currentUserId != null &&
-              meetup.participantIds.contains(currentUserId);
-          final isFull = meetup.participantIds.length >= meetup.maxParticipants;
-          final dateFormat = DateFormat('EEEE, MMM d @ h:mm a');
+        final meetup = snapshot.data!;
+        final currentUserId = firestoreService.currentUserId;
+        final isJoined =
+            currentUserId != null &&
+            meetup.participantIds.contains(currentUserId);
+        final isFull = meetup.participantIds.length >= meetup.maxParticipants;
+        final dateFormat = DateFormat('EEE, MMM d @ h:mm a');
 
-          return Column(
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            title: const Text('Meetup Details'),
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            elevation: 0,
+            centerTitle: true,
+            actions: [
+              if (isJoined)
+                IconButton(
+                  icon: const Icon(
+                    Icons.chat_bubble_outline,
+                    color: Colors.blue,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MeetupChatScreen(
+                          meetupId: meetupId,
+                          meetupTitle: meetup.title,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+          body: Column(
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 200,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: NetworkImage(meetup.imageUrl),
-                            fit: BoxFit.cover,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 20),
+                        // Category Icon/Label
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.teal.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            meetup.category.name.toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.teal,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 16),
+                        // Title
+                        Text(
+                          meetup.title,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            height: 1.3,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Stats Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Center(
-                              child: Chip(
-                                label: Text(
-                                  meetup.category.name.toUpperCase(),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.teal,
-                                  ),
-                                ),
-                                backgroundColor: Colors.teal[50],
+                            _buildStatItem(
+                              '${meetup.participantIds.length}/${meetup.maxParticipants}',
+                              'Joined',
+                              isFull ? Colors.redAccent : Colors.teal,
+                            ),
+                            Container(
+                              height: 30,
+                              width: 1,
+                              color: Colors.grey[300],
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 24,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              meetup.title,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 20),
-                            // Stats Row
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                _buildStatItem(
-                                  '${meetup.participantIds.length}/${meetup.maxParticipants}',
-                                  'Joined',
-                                  Colors.green,
-                                ),
-                                _buildStatItem(
-                                  '2',
-                                  'Likes',
-                                  Colors.black,
-                                ), // Mock
-                                _buildStatItem(
-                                  '0',
-                                  'Comments',
-                                  Colors.black,
-                                ), // Mock
-                              ],
-                            ),
-                            const Divider(height: 40),
-                            // Info Section
-                            _buildInfoRow(
-                              Icons.calendar_today,
-                              'Date & Time',
-                              dateFormat.format(meetup.dateTime),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildInfoRow(
-                              Icons.location_on,
-                              'Location',
-                              meetup.location,
-                            ),
-                            const SizedBox(height: 16),
-                            _buildInfoRow(
-                              Icons.person,
-                              'Host',
-                              meetup.host.name,
-                            ),
-                            const SizedBox(height: 30),
-                            const Text(
-                              'About this meetup',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            _buildStatItem('2', 'Likes', Colors.black87),
+                            Container(
+                              height: 30,
+                              width: 1,
+                              color: Colors.grey[300],
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 24,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              meetup.description,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                                height: 1.5,
-                              ),
-                            ),
+                            _buildStatItem('0', 'Comments', Colors.black87),
                           ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 32),
+                        const Divider(height: 1),
+                        const SizedBox(height: 32),
+                        // Info Rows
+                        _buildInfoRow(
+                          Icons.calendar_today_outlined,
+                          'Date & Time',
+                          dateFormat.format(meetup.dateTime),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildInfoRow(
+                          Icons.location_on_outlined,
+                          'Location',
+                          meetup.location,
+                        ),
+                        const SizedBox(height: 24),
+                        _buildInfoRow(
+                          Icons.person_outline,
+                          'Host',
+                          meetup.host.name,
+                        ),
+                        const SizedBox(height: 40),
+                        // About Section
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: const Text(
+                            'About this meetup',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            meetup.description,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                              height: 1.6,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+              // Bottom Button
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
                   child: SizedBox(
                     width: double.infinity,
+                    height: 56,
                     child: ElevatedButton(
-                      onPressed: () async {
-                        if (isJoined) {
-                          await firestoreService.leaveMeetup(meetupId);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('You left the meetup.'),
-                              ),
-                            );
-                          }
-                        } else if (!isFull) {
-                          final success = await firestoreService.joinMeetup(
-                            meetupId,
-                          );
-                          if (context.mounted && success) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Successfully joined!'),
-                              ),
-                            );
-                          }
-                        }
-                      },
+                      onPressed: isFull && !isJoined
+                          ? null
+                          : () async {
+                              if (isJoined) {
+                                await firestoreService.leaveMeetup(meetupId);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('You left the meetup.'),
+                                      duration: Duration(seconds: 1),
+                                    ),
+                                  );
+                                }
+                              } else {
+                                final success = await firestoreService
+                                    .joinMeetup(meetupId);
+                                if (context.mounted && success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Successfully joined!'),
+                                      duration: Duration(seconds: 1),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isJoined
                             ? Colors.redAccent
-                            : (isFull ? Colors.grey : Colors.teal),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                            : (isFull ? Colors.grey[300] : Colors.blue),
+                        foregroundColor: isFull && !isJoined
+                            ? Colors.grey[600]
+                            : Colors.white,
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       child: Text(
                         isJoined
                             ? 'Leave Meetup'
-                            : (isFull ? 'Full' : 'Join Meetup'),
+                            : (isFull ? 'Recruitment Closed' : 'Join Now'),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -205,9 +267,9 @@ class MeetupDetailScreen extends StatelessWidget {
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -222,7 +284,15 @@ class MeetupDetailScreen extends StatelessWidget {
             color: color,
           ),
         ),
-        Text(label, style: const TextStyle(color: Colors.grey)),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey[500],
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ],
     );
   }
@@ -231,7 +301,14 @@ class MeetupDetailScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: Colors.teal, size: 24),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: Colors.teal, size: 24),
+        ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
@@ -239,13 +316,19 @@ class MeetupDetailScreen extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.w500,
+                ),
               ),
+              const SizedBox(height: 4),
               Text(
                 value,
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
                 ),
               ),
             ],
