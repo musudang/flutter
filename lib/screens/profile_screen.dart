@@ -184,6 +184,27 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             ),
                           ),
+                          if (user.age != null) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[50],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Age: ${user.age}',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.blue[700],
+                                ),
+                              ),
+                            ),
+                          ],
                           if (user.createdAt != null) ...[
                             const SizedBox(width: 12),
                             Text(
@@ -230,6 +251,18 @@ class ProfileScreen extends StatelessWidget {
                             height: 1.5,
                           ),
                         ),
+                      if (user.personalInfo.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          user.personalInfo,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[500],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

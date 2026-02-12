@@ -14,6 +14,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _personalInfoController = TextEditingController();
   String? _nationality;
   bool _isLoading = false;
 
@@ -22,6 +24,8 @@ class _SignupScreenState extends State<SignupScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _ageController.dispose();
+    _personalInfoController.dispose();
     super.dispose();
   }
 
@@ -35,6 +39,8 @@ class _SignupScreenState extends State<SignupScreen> {
         password: _passwordController.text.trim(),
         name: _nameController.text.trim(),
         nationality: _nationality!,
+        age: int.tryParse(_ageController.text.trim()),
+        personalInfo: _personalInfoController.text.trim(),
       );
 
       setState(() => _isLoading = false);
@@ -44,8 +50,6 @@ class _SignupScreenState extends State<SignupScreen> {
           SnackBar(content: Text(error), backgroundColor: Colors.red),
         );
       } else if (mounted) {
-        // Success: Pop the signup screen.
-        // The authStateChanges stream in main.dart will handle the navigation to Home.
         Navigator.pop(context);
       }
     }
@@ -112,6 +116,35 @@ class _SignupScreenState extends State<SignupScreen> {
                   ],
                   onChanged: (val) => _nationality = val,
                   validator: (val) => val == null ? 'Select nationality' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _ageController,
+                  decoration: const InputDecoration(
+                    labelText: 'Age',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.cake_outlined),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value != null && value.isNotEmpty) {
+                      final age = int.tryParse(value);
+                      if (age == null || age < 1 || age > 150) {
+                        return 'Enter a valid age';
+                      }
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _personalInfoController,
+                  decoration: const InputDecoration(
+                    labelText: 'About Me (Optional)',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.info_outline),
+                  ),
+                  maxLines: 2,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(

@@ -1,0 +1,31 @@
+﻿"firebase_storage" is already in "dependencies". Will try to update the constraint.
+"image_picker" is already in "dependencies". Will try to update the constraint.
+Resolving dependencies...
+Downloading packages...
+  characters 1.4.0 (1.4.1 available)
++ cross_file 0.3.5+2
++ file_selector_linux 0.9.4
++ file_selector_macos 0.9.5
++ file_selector_platform_interface 2.7.0
++ file_selector_windows 0.9.3+5
++ firebase_storage 13.0.6
++ firebase_storage_platform_interface 5.2.17
++ firebase_storage_web 3.11.2
++ flutter_plugin_android_lifecycle 2.0.33
++ image_picker 1.2.1
++ image_picker_android 0.8.13+13
++ image_picker_for_web 3.1.1
++ image_picker_ios 0.8.13+6
++ image_picker_linux 0.2.2
++ image_picker_macos 0.2.2+1
++ image_picker_platform_interface 2.11.1
++ image_picker_windows 0.2.2
+  intl 0.18.1 (0.20.2 available)
+  matcher 0.12.17 (0.12.18 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.17.0 (1.18.1 available)
++ mime 2.0.0
+  test_api 0.7.7 (0.7.9 available)
+Would change 18 dependencies.
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.

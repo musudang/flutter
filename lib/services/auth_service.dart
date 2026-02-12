@@ -19,6 +19,8 @@ class AuthService extends ChangeNotifier {
     required String password,
     required String name,
     required String nationality,
+    int? age,
+    String personalInfo = '',
   }) async {
     try {
       // 1. Create User in Firebase Auth
@@ -37,6 +39,8 @@ class AuthService extends ChangeNotifier {
         avatarUrl:
             'https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}&background=random',
         nationality: nationality,
+        age: age,
+        personalInfo: personalInfo,
       );
 
       await _db.collection('users').doc(user.uid).set({
@@ -47,6 +51,8 @@ class AuthService extends ChangeNotifier {
         'email': email,
         'bio': '',
         'role': 'user',
+        'age': age,
+        'personalInfo': personalInfo,
         'createdAt': FieldValue.serverTimestamp(),
       });
 

@@ -1,5 +1,10 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/firestore_service.dart';
 import '../models/user_model.dart' as app_models;
 
@@ -16,7 +21,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _bioController;
   late TextEditingController _nationalityController;
+  late TextEditingController _ageController;
+  late TextEditingController _personalInfoController;
+  late TextEditingController _avatarUrlController;
   bool _isSaving = false;
+  bool _isUploadingPhoto = false;
 
   @override
   void initState() {
@@ -26,6 +35,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nationalityController = TextEditingController(
       text: widget.user.nationality,
     );
+    _ageController = TextEditingController(
+      text: widget.user.age?.toString() ?? '',
+    );
+    _personalInfoController = TextEditingController(
+      text: widget.user.personalInfo,
+    );
+    _avatarUrlController = TextEditingController(text: widget.user.avatarUrl);
   }
 
   @override
@@ -33,7 +49,53 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController.dispose();
     _bioController.dispose();
     _nationalityController.dispose();
+    _ageController.dispose();
+    _personalInfoController.dispose();
+    _avatarUrlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAndUploadPhoto() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 75,
+      );
+      if (picked == null) return;
+
+      setState(() => _isUploadingPhoto = true);
+
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
+
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('profile_photos')
+          .child('$uid.jpg');
+
+      if (kIsWeb) {
+        final bytes = await picked.readAsBytes();
+        await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
+      } else {
+        await ref.putFile(File(picked.path));
+      }
+
+      final url = await ref.getDownloadURL();
+      setState(() {
+        _avatarUrlController.text = url;
+        _isUploadingPhoto = false;
+      });
+    } catch (e) {
+      setState(() => _isUploadingPhoto = false);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+      }
+    }
   }
 
   Future<void> _save() async {
@@ -52,6 +114,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         name: _nameController.text.trim(),
         bio: _bioController.text.trim(),
         nationality: _nationalityController.text.trim(),
+        avatarUrl: _avatarUrlController.text.trim(),
+        age: int.tryParse(_ageController.text.trim()),
+        personalInfo: _personalInfoController.text.trim(),
       );
 
       if (mounted) {
@@ -108,26 +173,59 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Avatar preview
+            // Avatar preview with upload button
             Center(
-              child: CircleAvatar(
-                radius: 48,
-                backgroundColor: Colors.teal[50],
-                backgroundImage: widget.user.avatarUrl.isNotEmpty
-                    ? NetworkImage(widget.user.avatarUrl)
-                    : null,
-                child: widget.user.avatarUrl.isEmpty
-                    ? Text(
-                        _nameController.text.isNotEmpty
-                            ? _nameController.text[0].toUpperCase()
-                            : '?',
-                        style: TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal[700],
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 48,
+                    backgroundColor: Colors.teal[50],
+                    backgroundImage: _avatarUrlController.text.isNotEmpty
+                        ? NetworkImage(_avatarUrlController.text)
+                        : null,
+                    child: _avatarUrlController.text.isEmpty
+                        ? Text(
+                            _nameController.text.isNotEmpty
+                                ? _nameController.text[0].toUpperCase()
+                                : '?',
+                            style: TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal[700],
+                            ),
+                          )
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: _isUploadingPhoto ? null : _pickAndUploadPhoto,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.teal,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
                         ),
-                      )
-                    : null,
+                        child: _isUploadingPhoto
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.camera_alt,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 32),
@@ -149,6 +247,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _buildLabel('Nationality'),
             const SizedBox(height: 8),
             _buildTextField(_nationalityController, 'e.g. KR 🇰🇷'),
+
+            const SizedBox(height: 24),
+            _buildLabel('Age'),
+            const SizedBox(height: 8),
+            _buildTextField(
+              _ageController,
+              'e.g. 25',
+              keyboardType: TextInputType.number,
+            ),
+
+            const SizedBox(height: 24),
+            _buildLabel('About Me'),
+            const SizedBox(height: 8),
+            _buildTextField(
+              _personalInfoController,
+              'Hobbies, interests, what you do...',
+              maxLines: 3,
+            ),
+
+            const SizedBox(height: 24),
+            _buildLabel('Avatar URL (or use camera button above)'),
+            const SizedBox(height: 8),
+            _buildTextField(
+              _avatarUrlController,
+              'https://example.com/photo.jpg',
+            ),
           ],
         ),
       ),
@@ -170,10 +294,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     TextEditingController controller,
     String hint, {
     int maxLines = 1,
+    TextInputType? keyboardType,
   }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey[400]),

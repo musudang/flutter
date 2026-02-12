@@ -95,6 +95,8 @@ class NotificationsScreen extends StatelessWidget {
         return Icons.work;
       case 'comment':
         return Icons.comment;
+      case 'like':
+        return Icons.favorite;
       default:
         return Icons.notifications;
     }
@@ -110,6 +112,8 @@ class NotificationsScreen extends StatelessWidget {
         return Colors.orange;
       case 'comment':
         return Colors.purple;
+      case 'like':
+        return Colors.red;
       default:
         return Colors.teal;
     }

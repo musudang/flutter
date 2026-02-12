@@ -50,6 +50,8 @@ class FirestoreService extends ChangeNotifier {
           'nationality': newUser.nationality,
           'bio': '',
           'role': 'user',
+          'age': null,
+          'personalInfo': '',
           'createdAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
 
@@ -80,6 +82,8 @@ class FirestoreService extends ChangeNotifier {
       createdAt: data['createdAt'] != null
           ? (data['createdAt'] as Timestamp).toDate()
           : null,
+      age: data['age'] as int?,
+      personalInfo: data['personalInfo'] ?? '',
     );
   }
 
@@ -101,15 +105,23 @@ class FirestoreService extends ChangeNotifier {
     required String name,
     required String bio,
     required String nationality,
+    String? avatarUrl,
+    int? age,
+    String? personalInfo,
   }) async {
     final uid = currentUserId;
     if (uid == null) return;
 
-    await _db.collection('users').doc(uid).update({
+    final Map<String, dynamic> data = {
       'name': name,
       'bio': bio,
       'nationality': nationality,
-    });
+    };
+    if (avatarUrl != null) data['avatarUrl'] = avatarUrl;
+    if (age != null) data['age'] = age;
+    if (personalInfo != null) data['personalInfo'] = personalInfo;
+
+    await _db.collection('users').doc(uid).update(data);
   }
 
   Future<bool> isAdmin() async {
@@ -142,7 +154,12 @@ class FirestoreService extends ChangeNotifier {
 
     debugPrint("Attempting to save meetup... Title: ${meetup.title}");
     try {
-      await _db.collection('meetups').doc(meetup.id).set(_toDocument(meetup));
+      // Use .add() to auto-generate ID (meetup.id is '' from CreatePostScreen)
+      if (meetup.id.isEmpty) {
+        await _db.collection('meetups').add(_toDocument(meetup));
+      } else {
+        await _db.collection('meetups').doc(meetup.id).set(_toDocument(meetup));
+      }
       debugPrint("Meetup saved successfully!");
     } catch (e) {
       debugPrint("Error saving meetup: $e");

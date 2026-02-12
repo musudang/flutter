@@ -1,0 +1,88 @@
+﻿Resolving dependencies...
+flutter : Because fir
+ebase_storage >=12.3.
+7 <12.4.8 depends on 
+firebase_core_platfor
+m_interface ^5.3.1 an
+d firebase_storage >=
+12.4.8 <12.4.9 depend
+s on firebase_core_pl
+atform_interface ^5.4
+.1, firebase_storage 
+>=12.3.7 <12.4.9 requ
+ires firebase_core_pl
+atform_interface ^5.3
+.1.
+위치 줄:1 문자:1
++ flutter pub get 2>&
+1 | Out-File -Encodin
+g utf8 .\pub_get_resu
+lt.txt;  ...
++ ~~~~~~~~~~~~~~~~~~~
+~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Because   
+  firebas...terfa    
+ce ^5.3.1.:Strin    g
+) [], RemoteExc    ep
+tion
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+And because firebase_
+storage >=12.4.9 <12.
+4.10 depends on fireb
+ase_core ^3.15.1, fir
+ebase_storage >=12.3.
+7 <12.4.10 requires f
+irebase_core_platform
+_interface ^5.3.1 or 
+firebase_core ^3.15.1
+.
+Because no versions o
+f cloud_firestore mat
+ch >6.1.2 <7.0.0 and 
+cloud_firestore 6.1.2
+ depends on firebase_
+core_platform_interfa
+ce ^6.0.2, cloud_fire
+store ^6.1.2 requires
+ firebase_core_platfo
+rm_interface ^6.0.2.
+Thus, if cloud_firest
+ore ^6.1.2 and fireba
+se_storage >=12.3.7 <
+12.4.10 then firebase
+_core ^3.15.1.
+And because firebase_
+storage ^12.4.10 depe
+nds on firebase_core 
+^3.15.2 and teman_flu
+tter_app_code depends
+ on firebase_core ^4.
+4.0, cloud_firestore 
+^6.1.2 is incompatibl
+e with firebase_stora
+ge ^12.3.7.
+So, because teman_flu
+tter_app_code depends
+ on both cloud_firest
+ore ^6.1.2 and fireba
+se_storage ^12.4.4, v
+ersion solving failed
+.
+
+
+You can try the follo
+wing suggestion to ma
+ke the pubspec resolv
+e:
+* Try upgrading your 
+constraint on firebas
+e_storage: flutter pu
+b add firebase_storag
+e:^13.0.6
+Failed to update pack
+ages.

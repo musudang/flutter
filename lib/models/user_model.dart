@@ -7,6 +7,8 @@ class User {
   final String bio;
   final String role; // 'user' or 'admin'
   final DateTime? createdAt;
+  final int? age;
+  final String personalInfo;
 
   User({
     required this.id,
@@ -17,6 +19,8 @@ class User {
     this.bio = '',
     this.role = 'user',
     this.createdAt,
+    this.age,
+    this.personalInfo = '',
   });
 
   bool get isAdmin => role == 'admin';

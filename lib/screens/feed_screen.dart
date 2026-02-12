@@ -103,9 +103,9 @@ class _FeedScreenState extends State<FeedScreen> {
                   ),
                   const SizedBox(width: 10),
                   _buildFilterChip(
-                    'Meetups',
-                    icon: Icons.people_outline,
-                    isSelected: _selectedFilter == 'Meetups',
+                    'General',
+                    icon: Icons.article_outlined,
+                    isSelected: _selectedFilter == 'General',
                     color: const Color(0xFF6B7280),
                   ),
                   const SizedBox(width: 10),
@@ -187,6 +187,10 @@ class _FeedScreenState extends State<FeedScreen> {
 
         final filteredItems = items.where((item) {
           if (_selectedFilter == 'All') return true;
+          if (_selectedFilter == 'General') {
+            if (item is Post && item.category == 'general') return true;
+            return false;
+          }
           if (_selectedFilter == 'Q&A') {
             if (item is Post && item.category == 'qna') return true;
             if (item is Question) return true;
